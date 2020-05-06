@@ -23,7 +23,7 @@ class ShopScrapdb(object):
         """
         
         Initializes database connection and sessionmaker.
-        Creates deals table.
+        
         
         """
         engine = connect_db()
@@ -45,46 +45,67 @@ class ShopScrapdb(object):
         supermarket = Supermarkets()
         stock = Stock()
 
-        x = item['Name']
+        x = item["Name"]
 
-        name_match = session.query(Stock).get(f'{x}')
+        name_match = session.query(Stock).get(f"{x}")
+    
+        
 
-        if item['Name'] != name_match:
-            stock.name = item['Name'] 
-            prices.price = item['Price']
-            supermarket.stock_url = item['item_url']
-            prices.date = item['Date'] 
-            supermarket.name = item['Supermarket'] 
-            if item['Saturates']:
-                stock.saturates = item['Saturates']
-            elif item['Sugars']:
-                stock.sugars = item['Sugars']
-            elif item['Energy']:
-                stock.energy = item['Energy']
-            elif item['Fat']:
-                stock.fats =  item['Fat'] 
-            elif item['Carbohydrate']:
-                stock.carbohydates =  item['Carbohydrate']
-            elif item['Fibre']:
-                stock.fibre = item['Fibre'] 
-            elif item['Protein']:
-                stock.protein = item['Protein']
-            elif item['Salt']:
-                stock.salt = item['Salt'] 
+        if name_match != x:
+            stock.name = item["Name"]
+            prices.price = item["Price"]
+            supermarket.stock_url = item["item_url"]
+            prices.date = item["Date"] 
+            supermarket.name = item["Supermarket"] 
+            if item["Saturates"]:
+                stock.saturates = item["Saturates"]
+            elif item["Sugars"]:
+                stock.sugars = item["Sugars"]
+            elif item["Energy"]:
+                stock.energy = item["Energy"]
+            elif item["Fat"]:
+                stock.fats =  item["Fat"] 
+            elif item["Carbohydrate"]:
+                stock.carbohydates =  item["Carbohydrate"]
+            elif item["Fibre"]:
+                stock.fibre = item["Fibre"] 
+            elif item["Protein"]:
+                stock.protein = item["Protein"]
+            elif item["Salt"]:
+                stock.salt = item["Salt"] 
         else:
-            prices.price = item['Price']
-            prices.date = item['Date'] 
-            supermarket.name = item['Supermarket']       
-        try:
-            session.add(stock)
-            session.add(prices)
-            session.add(supermarket)
-            session.commit()
-        except:
-            session.rollback()
-            raise
-        finally:
-            session.close()
+            stock.name = item["Name"]
+            prices.price = item["Price"]
+            prices.date = item["Date"] 
+            supermarket.name = item["Supermarket"] 
+        
+             
 
+        # try:
+        #     session.add(stock)
+        #     session.add(prices)
+        #     session.add(supermarket)
+        #     session.commit()
+        # except:
+        #     session.rollback()
+        #     raise
+        # finally:
+        #     session.close()
+
+
+        session.add(stock)
+        session.add(prices)
+        session.add(supermarket)
+
+        session.flush()
+        session.commit()
+
+        print("item %s committed to database" % (x))
 
         return item
+
+        
+
+            
+
+

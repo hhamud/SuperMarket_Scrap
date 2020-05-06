@@ -27,46 +27,41 @@ Base = declarative_base()
 
 association_table = Table(
     'association', Base.metadata,
-    Column('name', String, ForeignKey('stock.name')),
-    Column('supermarket_name', String, ForeignKey('supermarkets.supermarket_name'))
+    Column('stock_id', Integer, ForeignKey('stock.id')),
+    Column('supermarket_id', Integer, ForeignKey('supermarkets.id')),
+    Column('prices_id', Integer, ForeignKey('prices.id')),
 )
 
 class Stock(Base):
     __tablename__ = 'stock'
     id = Column(Integer, primary_key=True)
-    Name =  Column('name',String(50), nullable=False, unique=True)
-    Energy =  Column('energy',Integer)
-    Carbohydrates =  Column('carbohydrates',Numeric)
-    Sugars =  Column('sugars',Numeric)
-    Fats =  Column('fats',Numeric)
-    Saturates =  Column('saturates',Numeric)
-    Protein =  Column('protein',Numeric)
-    Fibre =  Column('fibre',Numeric)
-    Salt =  Column('salt', Numeric)
-    prices = relationship("Prices", backref='Stock')
+    Name =  Column('name', String(355), nullable=False)
+    Energy =  Column('energy',String(10))
+    Carbohydrates =  Column('carbohydrates',String(10))
+    Sugars =  Column('sugars',String(10))
+    Fats =  Column('fats',String(10))
+    Saturates =  Column('saturates',String(10))
+    Protein =  Column('protein',String(10))
+    Fibre =  Column('fibre',String(10))
+    Salt =  Column('salt', String(10))
 
-    
-
-    
 
 
 class Prices(Base):
     __tablename__ = 'prices'
     id = Column(Integer, primary_key=True)
-    Price =  Column('price',Numeric, nullable=False)
+    Price =  Column('price', String(10))
     Date =  Column('date', Date)
-    stockings = Column(String(50), ForeignKey('stock.name'))
+    stockings = relationship('Stock', secondary=association_table, backref='price_name')
 
-
-
-    
+  
 
 class Supermarkets(Base):
     __tablename__ = 'supermarkets'
     id = Column(Integer, primary_key=True)
-    supermarket_name =  Column(String(20))
+    name =  Column(String(20))
     stock_url =  Column(String(355), unique=True)
-    stock_supplier = relationship('Stock', secondary=association_table, backref='stock_name')
+    stock_supplier = relationship('Stock', secondary=association_table, backref='stock_names')
     
 
 
@@ -77,10 +72,18 @@ def connect_db():
     """
     return create_engine(get_project_settings().get("CONNECTION_STRING"))
 
-def create_tabele():
-    return Base.metadata.create_all(engine, Base.metadata.tables.values(),checkfirst=True)
+def create_table():
+    return Base.metadata.create_all(engine)
 
 
 
-metadata.create_all(engine)
+def initialise_database():
+    return metadata.create_all(engine, Base.metadata.tables.values(), checkfirst=True)
 
+
+#Base.metadata.create_all(engine, Base.metadata.tables.values(), checkfirst=True)
+
+if __name__ == "__main__":
+    create_db()
+    create_table()
+    initialise_database()

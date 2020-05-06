@@ -41,10 +41,11 @@ class ShopScrap(CrawlSpider):
         item_url = response.url
         Price = response.css('strong.co-product__price.pdp-main-details__price::text').get()
 
-        Date = datetime.now()
+        Date = datetime.today()
         Supermarket = 'Asda'
         item['Price'] = Price
         item['Name'] = Name
+        print(item['Name'])
         item['item_url'] = item_url
         item['Date'] = Date
         item['Supermarket'] = Supermarket
