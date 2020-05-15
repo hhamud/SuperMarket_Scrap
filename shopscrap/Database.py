@@ -6,19 +6,6 @@ from scrapy.utils.project import get_project_settings
 
 
 
-
-
-
-
-engine = create_engine("mysql+pymysql://root@localhost/shopscrapdb")
-
-def create_db():
-    if not database_exists(engine.url):
-        create_database(engine.url)
-
-        print(database_exists(engine.url))
-
-
 metadata = MetaData()
 
 Base = declarative_base()
@@ -35,9 +22,9 @@ association_table = Table(
 class Stock(Base):
     __tablename__ = 'stock'
     id = Column(Integer, primary_key=True)
-    Name =  Column('name', String(355), nullable=False)
-    Energy =  Column('energy',String(10))
-    Carbohydrates =  Column('carbohydrates',String(10))
+    Name =  Column('name', String(355), nullable=False, unique=True)
+    Energy =  Column('energy',String(50))
+    Carbohydrates =  Column('carbohydrates',String(10l))
     Sugars =  Column('sugars',String(10))
     Fats =  Column('fats',String(10))
     Saturates =  Column('saturates',String(10))
@@ -72,18 +59,19 @@ def connect_db():
     """
     return create_engine(get_project_settings().get("CONNECTION_STRING"))
 
-def create_table():
+def create_table(engine):
+
     return Base.metadata.create_all(engine)
 
 
 
-def initialise_database():
+def initialise_database(engine):
     return metadata.create_all(engine, Base.metadata.tables.values(), checkfirst=True)
 
 
-#Base.metadata.create_all(engine, Base.metadata.tables.values(), checkfirst=True)
+
 
 if __name__ == "__main__":
-    create_db()
-    create_table()
-    initialise_database()
+    engine = connect_db()
+    create_table(engine)
+    initialise_database(engine)

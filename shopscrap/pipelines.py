@@ -1,16 +1,31 @@
 # -*- coding: utf-8 -*-
+import mysql.connector
 
 
 
 
 
-#?: each pipeline class can be given a different priority in the settings, (lower = greater priority)
+class Default_Values(object):
+    """
+    a pipeline that sets the default value of 0 for each field if scrapy does not find any information on the website
+    
+    """
 
-from __future__ import absolute_import
-from sqlalchemy.orm import sessionmaker
-import pymysql
-from shopscrap.Database import Prices, Supermarkets, Stock, connect_db
-from scrapy.exceptions import DropItem
+    def process_item(self, item, spider):
+        item.setdefault('Energy', '0')
+        item.setdefault('Carbohydrate', '0')
+        item.setdefault('Sugars', '0')
+        item.setdefault('Fat', '0')
+        item.setdefault('Saturates','0')
+        item.setdefault('Protein', '0')
+        item.setdefault('Fibre', '0')
+        item.setdefault('Salt', '0')
+
+
+
+        return item
+
+
 
 
 
@@ -22,90 +37,81 @@ class ShopScrapdb(object):
     def __init__(self):
         """
         
-        Initializes database connection and sessionmaker.
+        Initializes database connection.
         
         
         """
-        engine = connect_db()
-        self.Session = sessionmaker(bind=engine)
+        self.conn = mysql.connector.connect(
+            user='root',
+            password='',
+            host='localhost',
+            database='shopscrapdb'
+        )
+
+        self.cursor = self.conn.cursor()
 
 
     def process_item(self, item, spider):
 
         """
-        process pipeline
-
-        first checks if it already exists in the database,
-        then stores the items into the MYSQL database
+        process pipeline that stores the items scraped into the MYSQL database
         
         
         """
-        session = self.Session()
-        prices = Prices()
-        supermarket = Supermarkets()
-        stock = Stock()
 
-        x = item["Name"]
 
-        name_match = session.query(Stock).get(f"{x}")
+        sql_stock = """INSERT INTO stock(
+            name, energy, carbohydrates, sugars, fats, saturates, protein, fibre, salt)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        
+        sql_price = """INSERT INTO prices(price, date)
+            VALUES (%s, %s)"""
+           
+        sql_supermarket = """INSERT INTO supermarkets(name, stock_url)
+            VALUES (%s, %s)"""
+
+
     
+        stock_data = [
+            item["Name"],
+            item["Energy"],
+            item["Carbohydrate"],
+            item["Sugars"],
+            item["Fat"],
+            item["Saturates"],
+            item["Protein"],
+            item["Fibre"],
+            item["Salt"] 
+        ]
+
+
+
+        price_data = (
+            item["Price"],
+            item["Date"]
+        )
+
+        supermarket_data = (
+            item["Supermarket"],
+            item["item_url"]
+        )
+
+        try:
+            self.cursor.execute(sql_stock, stock_data)
+            self.cursor.execute(sql_price, price_data)
+            self.cursor.execute(sql_supermarket, supermarket_data)
+            self.conn.commit()
+        except:
+            self.conn.rollback()
+            
         
-
-        if name_match != x:
-            stock.name = item["Name"]
-            prices.price = item["Price"]
-            supermarket.stock_url = item["item_url"]
-            prices.date = item["Date"] 
-            supermarket.name = item["Supermarket"] 
-            if item["Saturates"]:
-                stock.saturates = item["Saturates"]
-            elif item["Sugars"]:
-                stock.sugars = item["Sugars"]
-            elif item["Energy"]:
-                stock.energy = item["Energy"]
-            elif item["Fat"]:
-                stock.fats =  item["Fat"] 
-            elif item["Carbohydrate"]:
-                stock.carbohydates =  item["Carbohydrate"]
-            elif item["Fibre"]:
-                stock.fibre = item["Fibre"] 
-            elif item["Protein"]:
-                stock.protein = item["Protein"]
-            elif item["Salt"]:
-                stock.salt = item["Salt"] 
-        else:
-            stock.name = item["Name"]
-            prices.price = item["Price"]
-            prices.date = item["Date"] 
-            supermarket.name = item["Supermarket"] 
         
-             
-
-        # try:
-        #     session.add(stock)
-        #     session.add(prices)
-        #     session.add(supermarket)
-        #     session.commit()
-        # except:
-        #     session.rollback()
-        #     raise
-        # finally:
-        #     session.close()
-
-
-        session.add(stock)
-        session.add(prices)
-        session.add(supermarket)
-
-        session.flush()
-        session.commit()
-
-        print("item %s committed to database" % (x))
-
         return item
 
         
 
-            
+    def close_spider(self, item, spider):
+        self.cursor.close()
+        self.conn.close()
 
-
+     

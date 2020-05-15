@@ -2,3 +2,5 @@ __pycache__
 *.pyc 
 TODOLIST.md
 .vscode/
+spare_code.py
+error.log

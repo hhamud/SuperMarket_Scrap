@@ -45,7 +45,6 @@ class ShopScrap(CrawlSpider):
         Supermarket = 'Asda'
         item['Price'] = Price
         item['Name'] = Name
-        print(item['Name'])
         item['item_url'] = item_url
         item['Date'] = Date
         item['Supermarket'] = Supermarket
@@ -78,9 +77,7 @@ class ShopScrap(CrawlSpider):
                 item['Protein'] = Protein
             elif "Salt" in j:
                 Salt = table2[i+1]
-                item['Salt'] = Salt
-
-     
+                item['Salt'] = Salt        
         
         yield item
 
