@@ -8,9 +8,7 @@ from scrapy.http import HtmlResponse, Request
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy_splash import SplashRequest, SplashResponse
 from datetime import datetime
-
-
-
+import random
 
 
 logging.basicConfig(filename='error.log',level=logging.WARNING)
@@ -22,12 +20,33 @@ class ShopScrap(CrawlSpider):
     start_urls = ['https://groceries.asda.com/product/cornflakes-honey-nut/kelloggs-crunchy-nut-corn-flakes/19140/']
     allowed_domains = ['groceries.asda.com']
 
+    with open('proxy/proxy-list.txt', 'r') as f:
+        listcomp = [i for i in f]
+        x = random.choice(listcomp).strip('\n')
+        base = 'http://'
+        ports = x.split(":")[1]
+        ip = x.split(":")[0]
+        proxy = base + ip
+        print(ip)
+        print(ports)
+        print(proxy)
+
+
+        PROXY = """splash:on_request(function(request)
+            request:set_proxy{{
+                host = {proxys},
+                port = {port}}}
+                return splash:html()
+            end)""".format(
+                proxys=proxy,
+                port=ports,
+            )
 
     def start_requests(self):
         for url in self.start_urls:
             yield SplashRequest(url=url, callback=self.parse_item, dont_filter=False ,args={
-                'url': url, 'wait': 10})
-
+                'url': url, 'wait': 10, 'lua_source': self.PROXY, 'js_source': 'document.body' ,'proxy': '{proxys}:{port}'.format(proxys=self.proxy,
+            port=self.ports)})
             
     def parse_item(self, response):
         item = ShopscrapItem()
@@ -82,10 +101,12 @@ class ShopScrap(CrawlSpider):
         yield item
 
 
-      
+
         for next in response.css('.co-product__anchor::attr(href)').getall():
             link = next.split("?")[0]
-            yield SplashRequest(response.urljoin(link), dont_filter=False, callback=self.parse_item, args={'wait':10.0})
+            yield SplashRequest(response.urljoin(link), dont_filter=False, callback=self.parse_item, args={'wait':10.0,
+            'lua_source': self.PROXY, 'js_source': 'document.body' ,'proxy': '{proxys}:{port}'.format(proxys=self.proxy,
+            port=self.ports)})
 
 
                 
