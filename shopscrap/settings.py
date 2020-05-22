@@ -15,13 +15,15 @@ SPIDER_MODULES = ['shopscrap.spiders']
 NEWSPIDER_MODULE = 'shopscrap.spiders'
 
 
+
+#SPLASH_URL = 'http://10.0.2.2:8050'
 SPLASH_URL = 'http://0.0.0.0:8050'
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
-    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
+    #'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
     # middleware id for proxy_pool
     # 'scrapy_proxy_pool.middlewares.ProxyPoolMiddleware': 610,
     # 'scrapy_proxy_pool.middlewares.BanDetectionMiddleware': 620
