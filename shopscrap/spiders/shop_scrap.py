@@ -18,15 +18,16 @@ logging.warning('Spider warnings')
 
 class ShopScrap(CrawlSpider):
     name = 'ShopScrap'
-    start_urls = ['http://groceries.asda.com/product/cornflakes-honey-nut/kelloggs-crunchy-nut-corn-flakes/19140/']
+    start_urls = [
+        'https://groceries.asda.com/product/cornflakes-honey-nut/kelloggs-corn-flakes-big-pack/910000043501',
+        'https://groceries.asda.com/product/coke-cola/coca-cola-zero-sugar-cans/80996825',
+    ]
     allowed_domains = ['groceries.asda.com']
   
         
     def start_requests(self):
         for url in self.start_urls:
-            yield SplashRequest(url=url,callback=self.parse_item, dont_filter=False ,args={
-                'url': url, 
-                'wait': 10})
+            yield SplashRequest(url=url, callback=self.parse_item, dont_filter=False ,args={'wait': 10})
 
     
     def parse_item(self, response):
@@ -34,9 +35,9 @@ class ShopScrap(CrawlSpider):
 
         table1 = response.css('div.pdp-description-reviews__nutrition-cell.pdp-description-reviews__nutrition-cell--grouped::text').getall()
         table2 = response.css('div.pdp-description-reviews__nutrition-cell.pdp-description-reviews__nutrition-cell--details::text').getall()
-    
+        print(table1)
+        print(table2)
 
-               
         Name = response.css('h1.pdp-main-details__title::text').get()
         item_url = response.url
         Price = response.css('strong.co-product__price.pdp-main-details__price::text').get()
@@ -82,13 +83,12 @@ class ShopScrap(CrawlSpider):
         yield item
 
 
-
         for next in response.css('.co-product__anchor::attr(href)').getall():
             link = next.split("?")[0]
             yield SplashRequest(response.urljoin(link), 
                 dont_filter=False, 
                 callback=self.parse_item,
-                args={'wait':10.0})
+                args={'wait':10})
 
 
                 
