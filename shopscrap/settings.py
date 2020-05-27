@@ -16,14 +16,11 @@ NEWSPIDER_MODULE = 'shopscrap.spiders'
 
 
 
-CONNECTION_STRING = "{drivername}://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
-    drivername="mysql",
-    user="root",
-    passwd="",
-    host="localhost",
-    port="3306",
-    db_name="shopscrapdb",
-)
+MONGODB_SERVER = "localhost"
+MONGODB_PORT = 27017
+MONGODB_DB = "shop_data"
+MONGODB_COLLECTION = "asda"
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'shopscrap (+http://www.yourdomain.com)'
@@ -79,10 +76,9 @@ COOKIES_ENABLED = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-# ITEM_PIPELINES = {
-#     'shopscrap.pipelines.Default_Values': 200,
-#    'shopscrap.pipelines.ShopScrapdb': 300
-# }
+ITEM_PIPELINES = {
+    'shopscrap.pipelines.MongoDBshopscrap': 700
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
