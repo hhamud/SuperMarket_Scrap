@@ -4,3 +4,5 @@ TODOLIST.md
 .vscode/
 spare_code.py
 error.log
+*.xml
+proxy

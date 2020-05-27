@@ -9,4 +9,7 @@ import scrapy
 
 
 class ShopscrapItem(scrapy.Item):
-    data_input = scrapy.Field()
+    name = scrapy.Field()
+    nutrition = scrapy.Field()
+    price = scrapy.Field()
+    date = scrapy.Field()

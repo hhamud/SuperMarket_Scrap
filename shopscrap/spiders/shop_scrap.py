@@ -8,11 +8,15 @@ from scrapy.spiders import CrawlSpider
 import requests
 import xml.etree.ElementTree as ET 
 import json
+import datetime
+import pytz
 
 
 
 logging.basicConfig(filename='error.log',level=logging.WARNING)
 logging.warning('Spider warnings')
+
+
 
 
 class ShopScrap(CrawlSpider):
@@ -31,7 +35,6 @@ class ShopScrap(CrawlSpider):
             f.write(site_index.content)
         parse_file = ET.parse('site_index_links.xml')
         file_root = parse_file.getroot()
-        print(file_root)
         prod_id_list = [] 
         for i in file_root.findall('{http://www.sitemaps.org/schemas/sitemap/0.9}url'):
             prod_link = i.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc').text 
@@ -53,9 +56,14 @@ class ShopScrap(CrawlSpider):
     def parse_item(self, response):
         item = ShopscrapItem()
         jsonresponse = json.loads(response.text)
-        print(jsonresponse)
-
-        item['data_input'] = jsonresponse
+        item['name'] = jsonresponse['data']['uber_item']['items'][0]['item']['name']
+        item['price'] = jsonresponse['data']['uber_item']['items'][0]['price']
+        item['nutrition'] = jsonresponse['data']['uber_item']['items'][0]['item_enrichment']['enrichment_info']['nutritional_values']
+        item['date'] = datetime.datetime.today(pytz.timezone('Europe/London'))
+        print(item['name'])
+        print(item['price'])
+        print(item['nutrition'])
+        
 
         yield item
        

@@ -3,6 +3,8 @@ import pymongo
 from scrapy.utils.project import get_project_settings
 
 settings = get_project_settings()
+
+
 class MongoDBshopscrap(object):
     def __init__(self):
         connection = pymongo.MongoClient(
