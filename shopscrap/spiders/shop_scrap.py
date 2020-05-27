@@ -1,15 +1,15 @@
 
 import scrapy
-import re 
 import logging
 from scrapy.exceptions import ScrapyDeprecationWarning
 from shopscrap.items import ShopscrapItem
-from scrapy.http import HtmlResponse, Request
-from scrapy.spiders import CrawlSpider, Rule
-from scrapy_splash import SplashRequest, SplashResponse
+from scrapy.http import Request, FormRequest
+from scrapy.spiders import CrawlSpider
 from datetime import datetime
-import random
 import requests
+import xml.etree.ElementTree as ET 
+import json
+
 
 
 logging.basicConfig(filename='error.log',level=logging.WARNING)
@@ -18,77 +18,80 @@ logging.warning('Spider warnings')
 
 class ShopScrap(CrawlSpider):
     name = 'ShopScrap'
-    start_urls = [
-        'https://groceries.asda.com/product/cornflakes-honey-nut/kelloggs-corn-flakes-big-pack/910000043501',
-        'https://groceries.asda.com/product/coke-cola/coca-cola-zero-sugar-cans/80996825',
-    ]
-    allowed_domains = ['groceries.asda.com']
+    start_urls = ['https://groceries.asda.com/api/items/catalog']
   
+    #     start_urls = [
+    #     'https://groceries.asda.com/product/cornflakes-honey-nut/kelloggs-corn-flakes-big-pack/910000043501',
+    #     'https://groceries.asda.com/product/coke-cola/coca-cola-zero-sugar-cans/80996825',
+    # ]
+    allowed_domains = ['https://groceries.asda.com/api/items/catalog']
+
+    # def request_site_index(self):
+    #     url_list = 'https://groceries.asda.com/sitemap-products.xml'
+    #     site_index = requests.get(url_list)
+    #     with open('site_index_links.xml', 'wb') as f:
+    #         f.write(site_index.content)
+
+    # def parse_xml(self):
+    #     parse_file = ET.parse('site_index_links.xml')
+    #     file_root = parse_file.getroot()
+    #     prod_id_list = [] 
+    #     for i in file_root.findall('url'):
+    #         prod_link = i.find('loc').text 
+    #         prod_id = prod_link.split("/")[-1] 
+    #         prod_id_list.append(prod_id)
         
+    #     return prod_id_list
+
+
+
     def start_requests(self):
+        url_list = 'https://groceries.asda.com/sitemap-products.xml'
+        site_index = requests.get(url_list)
+        with open('site_index_links.xml', 'wb') as f:
+            f.write(site_index.content)
+        parse_file = ET.parse('site_index_links.xml')
+        file_root = parse_file.getroot()
+        print(file_root)
+        prod_id_list = [] 
+        for i in file_root.findall('{http://www.sitemaps.org/schemas/sitemap/0.9}url'):
+            prod_link = i.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc').text 
+            prod_id = prod_link.split("/")[-1] 
+            prod_id_list.append(prod_id)
+
         for url in self.start_urls:
-            yield SplashRequest(url=url, callback=self.parse_item, dont_filter=False ,args={'wait': 10})
+            for x in prod_id_list:
+                body = {"consumer_contract": "webapp_pdp",
+                        "item_ids": [f"{x}"],
+                        "0": f"{x}",
+                        "request_origin": "gi",
+                        "store_id": "4565"}
+                header = {'Content-Type': 'application/json'}
+                print(body)
+                yield scrapy.Request(url=url, method='POST', body=json.dumps(body), callback=self.parse_item, headers=header)
 
     
     def parse_item(self, response):
+        # from scrapy.shell import inspect_response
+        # inspect_response(response, self)
         item = ShopscrapItem()
+        jsonresponse = json.loads(response.text)
+        print(jsonresponse)
 
-        table1 = response.css('div.pdp-description-reviews__nutrition-cell.pdp-description-reviews__nutrition-cell--grouped::text').getall()
-        table2 = response.css('div.pdp-description-reviews__nutrition-cell.pdp-description-reviews__nutrition-cell--details::text').getall()
-        print(table1)
-        print(table2)
+        item['data_input'] = jsonresponse
 
-        Name = response.css('h1.pdp-main-details__title::text').get()
-        item_url = response.url
-        Price = response.css('strong.co-product__price.pdp-main-details__price::text').get()
-
-        Date = datetime.today()
-        Supermarket = 'Asda'
-        item['Price'] = Price
-        item['Name'] = Name
-        item['item_url'] = item_url
-        item['Date'] = Date
-        item['Supermarket'] = Supermarket
-
-    
-        for i,j in enumerate(table1):
-            if 'of which saturates' in j:
-                Saturates = table1[i+1]
-                item['Saturates'] = Saturates 
-            elif 'of which sugars' in j:
-                Sugars = table1[i+1]
-                item['Sugars'] = Sugars
-
-
-        for i,j in enumerate(table2):
-            if "Energy" in j:
-                Energy = table2[i+1]
-                item['Energy'] = Energy
-            elif "Fat" in j:
-                Fat = table2[i+1]
-                item['Fat'] = Fat
-            elif "Carbohydrate" in j:
-                Carbohydrate = table2[i+1]
-                item['Carbohydrate'] = Carbohydrate
-            elif "Fibre" in j:
-                Fibre = table2[i+1]
-                item['Fibre'] = Fibre
-            elif "Protein" in j:
-                Protein = table2[i+1]
-                item['Protein'] = Protein
-            elif "Salt" in j:
-                Salt = table2[i+1]
-                item['Salt'] = Salt        
-        
         yield item
+        # for url in self.start_urls:
+        #     for x in prod_id_list:
+        #         body = {"item_ids": [f"{x}"],
+        #                         "0": f"{x}",
+        #                         "request_origin": "gi",
+        #                         "store_id": "4565"}
+                        
+        #         yield scrapy.Request(url=url, method='POST',formdata=body ,callback=self.parse_item)
 
 
-        for next in response.css('.co-product__anchor::attr(href)').getall():
-            link = next.split("?")[0]
-            yield SplashRequest(response.urljoin(link), 
-                dont_filter=False, 
-                callback=self.parse_item,
-                args={'wait':10})
+
 
 
                 

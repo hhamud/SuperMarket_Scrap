@@ -16,16 +16,6 @@ NEWSPIDER_MODULE = 'shopscrap.spiders'
 
 
 
-SPLASH_URL = 'http://0.0.0.0:8050'
-
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_splash.SplashCookiesMiddleware': 723,
-    'scrapy_splash.SplashMiddleware': 725,
-    'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
-}
-
-
-
 CONNECTION_STRING = "{drivername}://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
     drivername="mysql",
     user="root",
@@ -34,15 +24,6 @@ CONNECTION_STRING = "{drivername}://{user}:{passwd}@{host}:{port}/{db_name}?char
     port="3306",
     db_name="shopscrapdb",
 )
-
-SPIDER_MIDDLEWARES = {
-    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
-}
-
-DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
-
-HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
-
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'shopscrap (+http://www.yourdomain.com)'
@@ -97,10 +78,11 @@ COOKIES_ENABLED = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-    'shopscrap.pipelines.Default_Values': 200,
-   'shopscrap.pipelines.ShopScrapdb': 300
-}
+
+# ITEM_PIPELINES = {
+#     'shopscrap.pipelines.Default_Values': 200,
+#    'shopscrap.pipelines.ShopScrapdb': 300
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
