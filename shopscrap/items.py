@@ -9,16 +9,7 @@ import scrapy
 
 
 class ShopscrapItem(scrapy.Item):
-    Name = scrapy.Field()
-    Price = scrapy.Field()
-    item_url = scrapy.Field()
-    Energy = scrapy.Field()
-    Fat = scrapy.Field()
-    Carbohydrate = scrapy.Field()
-    Saturates = scrapy.Field()
-    Sugars = scrapy.Field()
-    Fibre = scrapy.Field()
-    Protein = scrapy.Field()
-    Salt = scrapy.Field()
-    Date = scrapy.Field()
-    Supermarket = scrapy.Field()
+    name = scrapy.Field()
+    nutrition = scrapy.Field()
+    price = scrapy.Field()
+    date = scrapy.Field()
